@@ -33,8 +33,8 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                 {
                     id_proceso_base = currentData.id_proc,
                     ids_procesos = new List<string> { currentData.id_proc },
-                    administrados = new List<AdministradoModel> {
-                        new AdministradoModel() {
+                    administrados = new List<Administrado> {
+                        new Administrado() {
                             id_administrado=currentData.cod_entidad,
                             tipo_documento=id_documento_ruc,
                             numero_documento =currentData.ruc,
@@ -85,8 +85,8 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                 {
                     id_proceso_base = currentData.id_proceso,
                     ids_procesos = new List<string> { currentData.id_proceso },
-                    administrados = new List<AdministradoModel> {
-                        new AdministradoModel() {
+                    administrados = new List<Administrado> {
+                        new Administrado() {
                             id_administrado=currentData.id_administrado,
                             tipo_documento=currentData.tipo_documento,
                             numero_documento =currentData.numero_documento,
@@ -154,8 +154,8 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     id_proceso_base = currentData.id_proceso,
                     id_flujo = currentData.id_flujo,
                     ids_procesos = new List<string> { currentData.id_proceso },
-                    administrados = new List<AdministradoModel> {
-                        new AdministradoModel() {
+                    administrados = new List<Administrado> {
+                        new Administrado() {
                             id_administrado=currentData.id_administrado,
                             tipo_documento=currentData.tipo_documento,
                             numero_documento =currentData.numero_documento,
