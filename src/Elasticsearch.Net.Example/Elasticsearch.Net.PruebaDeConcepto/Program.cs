@@ -28,7 +28,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             services.AddSingleton<IElasticClient>((sp) => {
                 var settings = new ConnectionSettings(new Uri(_elasticConfig.ELASTIC_SERVER_URL))
                     //.DefaultIndex("defaultindex")
-                    .DefaultMappingFor<DocumentModel>(m => m.IndexName("metadata_index"));
+                    .DefaultMappingFor<DocumentModel>(m => m.IndexName(_elasticConfig.METADATA_INDEX));
 
                 //settings.BasicAuthentication(_elasticConfig.ELASTIC_USER, _elasticConfig.ELASTIC_PASS);
 #if DEBUG
@@ -42,16 +42,35 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             var serviceProvider = services.BuildServiceProvider();
             IElasticClient _elasticClient = serviceProvider.GetService<IElasticClient>();
 
+            //0 Crear Index si no existe
+            CrearIndexSiNoExiste(_elasticClient, _elasticConfig.METADATA_INDEX);
+
             //1 Registrar documento en el indice
             foreach (var request in DummyData.ObtenerSolicitudesDummy1())
             {
+                Console.WriteLine($"Agregando documento: {request.id_proceso_base}");
                 RegistrarDocumentModel(_elasticClient, request);
             }
 
             //2 Buscar documento en el indice
+
+            Console.WriteLine("Bye World Elasticsearch.Net!");
+            Console.ReadKey();
         }
 
-
+        private static void CrearIndexSiNoExiste(IElasticClient elasticClient, string _currentIndexName)
+        {
+            if (!elasticClient.IndexExists(Indices.Parse(_currentIndexName)).Exists)
+            {
+                elasticClient.CreateIndex(_currentIndexName, c => c
+                             .Settings(se => se
+                                .NumberOfReplicas(0))
+                             .Mappings(ms => ms
+                                 .Map<DocumentModel>(m => m
+                                     .AutoMap())
+                                      ));
+            }
+        }
 
         public static void RegistrarDocumentModel(IElasticClient _elasticClient, DocumentModel request) 
         {
