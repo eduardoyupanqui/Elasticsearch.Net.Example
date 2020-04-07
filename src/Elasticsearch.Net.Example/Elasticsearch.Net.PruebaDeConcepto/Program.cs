@@ -54,6 +54,8 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
             //2 Buscar documento en el indice
 
+
+
             Console.WriteLine("Bye World Elasticsearch.Net!");
             Console.ReadKey();
         }
@@ -119,9 +121,97 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             }
         }
 
-        public IEnumerable<BuscarMetadatosResponse> BuscarMetadatos(BuscarMetadatosRequest request) 
-        { 
-            return Enumerable.Empty<BuscarMetadatosResponse>();
+        public IEnumerable<BuscarMetadatosResponse> BuscarMetadatos(IElasticClient _elasticClient, BuscarMetadatosRequest request) 
+        {
+
+            //Acumulador de filtros
+            var filters = new List<Func<QueryContainerDescriptor<DocumentModel>, QueryContainer>>();
+
+            //1)Filtrando por ids_procesos_base
+            if (request.ids_procesos_base != null && request.ids_procesos_base.Count > 0)
+            {
+                filters.Add(fq => fq.Terms(w => w.Field("id_proceso_base").Terms<string>(request.ids_procesos_base)));
+            }
+
+            //2)Filtrando por ids_procesos
+            if (request.ids_procesos != null && request.ids_procesos.Count > 0)
+            {
+                filters.Add(fq => fq.Terms(w => w.Field("ids_procesos").Terms<string>(request.ids_procesos)));
+            }
+            //3)Filtrando por administrado
+            if (request.administrado != null)
+            {
+                //1) Búsqueda por descripción de administrado (nombre o razón social) (wildcard)
+                if (!string.IsNullOrWhiteSpace(request.administrado.descripcion))
+                {
+                    #region Preproceso de wildcards
+                    var query = request.administrado.descripcion
+                                .Replace("*", string.Empty)
+                                .Replace("?", string.Empty);
+                    #endregion
+                    if (!string.IsNullOrWhiteSpace(query))
+                    {
+                        query = query + "*";
+                        //filters.Add(fq => fq.Wildcard(x => new WildcardQueryDescriptor<BloqueMetadatos>().Field("administrados.descripcion").Value(query)));
+                        filters.Add(fq => fq.Nested(c => c
+                       .Path(p => p.administrados)
+                       .Query(q => q
+                           .Wildcard(x => new WildcardQueryDescriptor<DocumentModel>().Field("administrados.descripcion").Value(query))
+                           )));
+                    }
+                }
+
+                //2) Búsqueda por número de documento
+                if (!string.IsNullOrWhiteSpace(request.administrado.numero_documento))
+                {
+                    //filters.Add(fq => fq.Terms(w => w.Field("administrados.numero_documento").Terms<string>(request.administrado.numero_documento)));
+                    filters.Add(fq => fq.Nested(c => c
+                        .Path(p => p.administrados)
+                        .Query(q => q
+                            .Match(nq => nq.Field("administrados.numero_documento").Query(request.administrado.numero_documento)))));
+                }
+
+                //3) Búsqueda por id administrado
+                if (!string.IsNullOrWhiteSpace(request.administrado.id_administrado))
+                {
+                    //filters.Add(fq => fq.Match(w => w.Field("administrados.id_administrado").Query(request.administrado.id_administrado)));
+                    filters.Add(fq => fq.Nested(c => c
+                        .Path(p => p.administrados)
+                        .Query(q => q
+                            .Match(nq => nq.Field("administrados.id_administrado").Query(request.administrado.id_administrado)))));
+                }
+            }
+
+            //4) Filtrando por número de solicitud (solici_numero)
+            if (!string.IsNullOrWhiteSpace(request.solici_numero))
+            {
+                filters.Add(fq => fq
+                        .Match(w => w
+                        .Field(d => d.solici_numero)
+                        .Query(request.solici_numero)
+
+                    )
+                );
+            }
+
+            ISearchResponse<DocumentModel> searchResponse = _elasticClient.Search<DocumentModel>(x => x
+                .From(0)
+                .Size(10)
+                //.Skip(0)
+                //.Take(10)
+                .Query(q => q.Bool(bq => bq.Filter(filters)))
+                .Sort(s => s.Ascending(SortSpecialField.DocumentIndexOrder))
+                .TrackScores(false)
+                .Scroll("1m")
+            );
+            var results = new List<BuscarMetadatosResponse>();
+            foreach (var hit in searchResponse.Hits)
+            {
+                results.Add(hit.Source.ToResponse());
+            }
+
+            return results;
+            //return Enumerable.Empty<BuscarMetadatosResponse>();
         }
 
     }

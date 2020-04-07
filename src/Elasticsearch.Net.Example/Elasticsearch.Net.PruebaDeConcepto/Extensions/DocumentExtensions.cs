@@ -37,5 +37,42 @@ namespace Elasticsearch.Net.PruebaDeConcepto.Extensions
             destination.solici_fecha_registro = changes.solici_fecha_registro ?? destination.solici_fecha_registro;
 
         }
+
+        public static BuscarMetadatosResponse ToResponse(this DocumentModel entity)
+        {
+            var response = new BuscarMetadatosResponse();
+            response.id_proceso_base = entity.id_proceso_base;
+            response.id_flujo = entity.id_flujo;
+            response.ids_procesos = entity.ids_procesos;
+            response.administrados = entity.administrados.ToResponseList();
+
+            response.solici_fecha_registro = entity.solici_fecha_registro;
+            response.solici_id_estado = entity.solici_id_estado;
+            response.solici_numero = entity.solici_numero;
+
+            return response;
+        }
+        public static AdministradoResponse ToResponse(this Administrado entity)
+        {
+            return new AdministradoResponse()
+            {
+                id_administrado = entity.id_administrado,
+                descripcion = entity.descripcion,
+                tipo_documento = entity.tipo_documento,
+                numero_documento = entity.numero_documento
+            };
+        }
+
+        public static List<AdministradoResponse> ToResponseList(this List<Administrado> entityList)
+        {
+            if (entityList == null) return null;
+            var returnList = new List<AdministradoResponse>();
+            foreach (var model in entityList)
+            {
+                returnList.Add(model.ToResponse());
+            }
+
+            return returnList;
+        }
     }
 }
