@@ -170,5 +170,35 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
             }
         }
+
+        public static BuscarMetadatosRequest GetRequest()
+        {
+
+            var buscarRequest = new BuscarMetadatosRequest()
+            {
+                //1) Buscando por "id_administrado"
+                administrado = new AdministradoRequest() { id_administrado = "f1baf60d-74f1-46ce-89ee-d16f68772807" }, //"Universidad Nacional del Santa"
+
+                //2) Buscando por (parte de) "descripcion" de administrado
+                //administrado = new AdministradoRequest() { descripcion = "priv" }, //"Universidad de San Martín de Porres"
+
+                //3) Buscando por "numero_documento" de administrado
+                //administrado = new AdministradoRequest() { numero_documento = "20479748102" }, //"Universidad Señor de Sipán"
+
+                //4) Buscando por "id_proceso_base"
+                //ids_procesos_base = new List<string>() { "5cdb2a8429f74744d07b31c0" }, //"0008-SOLPROME - Universidad Señor de Sipán"
+
+                //5) Buscando por "ids_procesos"
+                //ids_procesos = new List<string>() { "5cdae37d939be24b9ce0e020" }, //"0002-SOLPROME - Universidad Nacional del Santa"
+
+
+                //6) Buscando por (parte de) "solici_numero"
+                //solici_numero = "0002" // sin resultados, el campo "solici_numero" solo acepta búsquedas exactas
+
+                //7) Buscando por "solici_numero"
+                //solici_numero = "0008-SOLPROME" //"Universidad Señor de Sipán"
+            };
+            return buscarRequest;
+        }
     }
 }

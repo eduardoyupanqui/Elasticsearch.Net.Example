@@ -46,7 +46,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             CrearIndexSiNoExiste(_elasticClient, _elasticConfig.METADATA_INDEX);
 
             //1 Registrar documento en el indice
-            foreach (var request in DummyData.ObtenerSolicitudesDummy1())
+            foreach (var request in DummyData.ObtenerSolicitudesDummy3())
             {
                 Console.WriteLine($"Agregando documento: {request.id_proceso_base}");
                 RegistrarDocumentModel(_elasticClient, request);
@@ -54,7 +54,14 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
             //2 Buscar documento en el indice
 
+            var requestBusqueda = DummyData.GetRequest();
 
+            var response = BuscarMetadatos(_elasticClient, requestBusqueda);
+
+            foreach (var document in response)
+            {
+                Console.WriteLine($"Doc: {document.id_proceso_base } Num Sol: {document.solici_numero}");
+            }
 
             Console.WriteLine("Bye World Elasticsearch.Net!");
             Console.ReadKey();
@@ -74,9 +81,9 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             }
         }
 
-        public static void RegistrarDocumentModel(IElasticClient _elasticClient, DocumentModel request) 
+        public static void RegistrarDocumentModel(IElasticClient _elasticClient, DocumentModel request)
         {
-            
+
             //1) obtener documento que tenga el mismo "id_proceso_base" 
             var filters = new List<Func<QueryContainerDescriptor<DocumentModel>, QueryContainer>>();
             filters.Add(fq => fq.Match(w => w.Field("id_proceso_base").Query(request.id_proceso_base)));
@@ -85,7 +92,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                 x.Query(q => q.Bool(bq => bq.Filter(filters))));
 
             //2) si ya existe, se obtiene
-            
+
 
             if (searchResponse.Hits.Count == 0)
             {
@@ -121,7 +128,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             }
         }
 
-        public IEnumerable<BuscarMetadatosResponse> BuscarMetadatos(IElasticClient _elasticClient, BuscarMetadatosRequest request) 
+        public static IEnumerable<BuscarMetadatosResponse> BuscarMetadatos(IElasticClient _elasticClient, BuscarMetadatosRequest request)
         {
 
             //Acumulador de filtros
@@ -154,10 +161,9 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                         query = query + "*";
                         //filters.Add(fq => fq.Wildcard(x => new WildcardQueryDescriptor<BloqueMetadatos>().Field("administrados.descripcion").Value(query)));
                         filters.Add(fq => fq.Nested(c => c
-                       .Path(p => p.administrados)
-                       .Query(q => q
-                           .Wildcard(x => new WildcardQueryDescriptor<DocumentModel>().Field("administrados.descripcion").Value(query))
-                           )));
+                            .Path(p => p.administrados)
+                            .Query(q => q
+                                .Wildcard(x => new WildcardQueryDescriptor<DocumentModel>().Field("administrados.descripcion").Value(query)))));
                     }
                 }
 
@@ -195,14 +201,14 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             }
 
             ISearchResponse<DocumentModel> searchResponse = _elasticClient.Search<DocumentModel>(x => x
-                .From(0)
-                .Size(10)
-                //.Skip(0)
-                //.Take(10)
                 .Query(q => q.Bool(bq => bq.Filter(filters)))
                 .Sort(s => s.Ascending(SortSpecialField.DocumentIndexOrder))
                 .TrackScores(false)
-                .Scroll("1m")
+                //.Scroll("1m")
+                .Skip(0)
+                .Take(10)
+                //.From(0)
+                //.Size(1)
             );
             var results = new List<BuscarMetadatosResponse>();
             foreach (var hit in searchResponse.Hits)
