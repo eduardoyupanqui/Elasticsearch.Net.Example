@@ -69,15 +69,14 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
         private static void CrearIndexSiNoExiste(IElasticClient elasticClient, string _currentIndexName)
         {
-            if (!elasticClient.IndexExists(Indices.Parse(_currentIndexName)).Exists)
+            if (!elasticClient.Indices.Exists(Indices.Parse(_currentIndexName)).Exists)
             {
-                elasticClient.CreateIndex(_currentIndexName, c => c
+                elasticClient.Indices.Create(_currentIndexName, c => c
                              .Settings(se => se
                                 .NumberOfReplicas(0))
-                             .Mappings(ms => ms
-                                 .Map<DocumentModel>(m => m
-                                     .AutoMap())
-                                      ));
+                             .Map<DocumentModel>(m => m
+                                .AutoMap())
+                             );
             }
         }
 
