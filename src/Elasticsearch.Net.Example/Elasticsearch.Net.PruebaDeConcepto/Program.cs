@@ -8,12 +8,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Elasticsearch.Net.PruebaDeConcepto
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             //Install https://www.elastic.co/es/downloads/past-releases/elasticsearch-6-5-4
             //>docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:6.5.4
@@ -43,20 +44,20 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             IElasticClient _elasticClient = serviceProvider.GetService<IElasticClient>();
 
             //0 Crear Index si no existe
-            CrearIndexSiNoExiste(_elasticClient, _elasticConfig.METADATA_INDEX);
+            await CrearIndexSiNoExiste(_elasticClient, _elasticConfig.METADATA_INDEX);
 
             //1 Registrar documento en el indice
             foreach (var request in DummyData.ObtenerSolicitudesDummy3())
             {
                 Console.WriteLine($"Agregando documento: {request.id_proceso_base}");
-                RegistrarDocumentModel(_elasticClient, request);
+                await RegistrarDocumentModel(_elasticClient, request);
             }
 
             //2 Buscar documento en el indice
 
             var requestBusqueda = DummyData.GetRequest();
 
-            var response = BuscarMetadatos(_elasticClient, requestBusqueda);
+            var response = await BuscarMetadatos(_elasticClient, requestBusqueda);
 
             foreach (var document in response)
             {
@@ -67,11 +68,12 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             Console.ReadKey();
         }
 
-        private static void CrearIndexSiNoExiste(IElasticClient elasticClient, string _currentIndexName)
+        private static async Task CrearIndexSiNoExiste(IElasticClient elasticClient, string _currentIndexName)
         {
-            if (!elasticClient.Indices.Exists(Indices.Parse(_currentIndexName)).Exists)
+            var existsResponse = await elasticClient.Indices.ExistsAsync(Indices.Parse(_currentIndexName));
+            if (!existsResponse.Exists)
             {
-                elasticClient.Indices.Create(_currentIndexName, c => c
+                await elasticClient.Indices.CreateAsync(_currentIndexName, c => c
                              .Settings(se => se
                                 .NumberOfReplicas(0))
                              .Map<DocumentModel>(m => m
@@ -80,14 +82,14 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             }
         }
 
-        public static void RegistrarDocumentModel(IElasticClient _elasticClient, DocumentModel request)
+        public static async Task RegistrarDocumentModel(IElasticClient _elasticClient, DocumentModel request)
         {
 
             //1) obtener documento que tenga el mismo "id_proceso_base" 
             var filters = new List<Func<QueryContainerDescriptor<DocumentModel>, QueryContainer>>();
             filters.Add(fq => fq.Match(w => w.Field("id_proceso_base").Query(request.id_proceso_base)));
 
-            ISearchResponse<DocumentModel> searchResponse = _elasticClient.Search<DocumentModel>(x =>
+            ISearchResponse<DocumentModel> searchResponse = await _elasticClient.SearchAsync<DocumentModel>(x =>
                 x.Query(q => q.Bool(bq => bq.Filter(filters))));
 
             //2) si ya existe, se obtiene
@@ -96,7 +98,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             if (searchResponse.Hits.Count == 0)
             {
                 //Crear
-                var insertResponse = _elasticClient.Index<DocumentModel>(new IndexRequest<DocumentModel>(request));
+                var insertResponse = await _elasticClient.IndexAsync<DocumentModel>(new IndexRequest<DocumentModel>(request));
                 if (!insertResponse.IsValid)
                 {
                     Console.WriteLine("Error al registrar bloque");
@@ -112,7 +114,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                 DocumentModel bloque = hit.Source;
                 bloque.MergeFrom(request);
 
-                var updateResponse = _elasticClient.Update<DocumentModel>(DocumentPath<DocumentModel>.Id(bloque_elasticId),
+                var updateResponse = await _elasticClient.UpdateAsync<DocumentModel>(DocumentPath<DocumentModel>.Id(bloque_elasticId),
                     u => u
                         //.Index("metadata_index")
                         //.Type("_doc")
@@ -127,7 +129,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             }
         }
 
-        public static IEnumerable<BuscarMetadatosResponse> BuscarMetadatos(IElasticClient _elasticClient, BuscarMetadatosRequest request)
+        public static async Task<IEnumerable<BuscarMetadatosResponse>> BuscarMetadatos(IElasticClient _elasticClient, BuscarMetadatosRequest request)
         {
 
             //Acumulador de filtros
@@ -199,7 +201,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                 );
             }
 
-            ISearchResponse<DocumentModel> searchResponse = _elasticClient.Search<DocumentModel>(x => x
+            ISearchResponse<DocumentModel> searchResponse = await _elasticClient.SearchAsync<DocumentModel>(x => x
                 .Query(q => q.Bool(bq => bq.Filter(filters)))
                 .Sort(s => s.Ascending(SortSpecialField.DocumentIndexOrder))
                 .TrackScores(false)
