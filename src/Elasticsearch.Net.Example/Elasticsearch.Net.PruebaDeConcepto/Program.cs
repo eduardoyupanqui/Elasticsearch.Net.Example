@@ -27,7 +27,8 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
             IServiceCollection services = new ServiceCollection();
             services.AddSingleton<IElasticClient>((sp) => {
-                var settings = new ConnectionSettings(new Uri(_elasticConfig.ELASTIC_SERVER_URL))
+                var pool = new SingleNodeConnectionPool(new Uri(_elasticConfig.ELASTIC_SERVER_URL));
+                var settings = new ConnectionSettings(pool)
                     //.DefaultIndex("defaultindex")
                     .DefaultMappingFor<DocumentModel>(m => m.IndexName(_elasticConfig.METADATA_INDEX));
 
