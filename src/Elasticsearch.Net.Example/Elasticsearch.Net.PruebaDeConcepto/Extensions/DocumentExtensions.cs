@@ -24,31 +24,31 @@ namespace Elasticsearch.Net.PruebaDeConcepto.Extensions
             //Mezcla ids_procesos:
 
             //Asegurando que las listas tengan valor
-            destination.ids_procesos = destination.ids_procesos ?? new List<string>();
-            changes.ids_procesos = changes.ids_procesos ?? new List<string>();
+            destination.IdsProcesos = destination.IdsProcesos ?? new List<string>();
+            changes.IdsProcesos = changes.IdsProcesos ?? new List<string>();
             //Mezclando ids_procesos
-            destination.ids_procesos = destination.ids_procesos.Union(changes.ids_procesos).ToList();
+            destination.IdsProcesos = destination.IdsProcesos.Union(changes.IdsProcesos).ToList();
 
             //Remplazo de administrados
-            destination.administrados = (changes.administrados != null && changes.administrados.Any()) ? changes.administrados : destination.administrados;
+            destination.Administrados = (changes.Administrados != null && changes.Administrados.Any()) ? changes.Administrados : destination.Administrados;
 
-            destination.solici_numero = changes.solici_numero ?? destination.solici_numero;
-            destination.solici_id_estado = changes.solici_id_estado ?? destination.solici_id_estado;
-            destination.solici_fecha_registro = changes.solici_fecha_registro ?? destination.solici_fecha_registro;
+            destination.SoliciNumero = changes.SoliciNumero ?? destination.SoliciNumero;
+            destination.SoliciIdEstado = changes.SoliciIdEstado ?? destination.SoliciIdEstado;
+            destination.SoliciFechaRegistro = changes.SoliciFechaRegistro ?? destination.SoliciFechaRegistro;
 
         }
 
         public static BuscarMetadatosResponse ToResponse(this DocumentModel entity)
         {
             var response = new BuscarMetadatosResponse();
-            response.id_proceso_base = entity.id_proceso_base;
-            response.id_flujo = entity.id_flujo;
-            response.ids_procesos = entity.ids_procesos;
-            response.administrados = entity.administrados.ToResponseList();
+            response.id_proceso_base = entity.IdProcesoBase;
+            response.id_flujo = entity.IdFlujo;
+            response.ids_procesos = entity.IdsProcesos;
+            response.administrados = entity.Administrados.ToResponseList();
 
-            response.solici_fecha_registro = entity.solici_fecha_registro;
-            response.solici_id_estado = entity.solici_id_estado;
-            response.solici_numero = entity.solici_numero;
+            response.solici_fecha_registro = entity.SoliciFechaRegistro;
+            response.solici_id_estado = entity.SoliciIdEstado;
+            response.solici_numero = entity.SoliciNumero;
 
             return response;
         }
@@ -56,10 +56,10 @@ namespace Elasticsearch.Net.PruebaDeConcepto.Extensions
         {
             return new AdministradoResponse()
             {
-                id_administrado = entity.id_administrado,
-                descripcion = entity.descripcion,
-                tipo_documento = entity.tipo_documento,
-                numero_documento = entity.numero_documento
+                id_administrado = entity.IdAdministrado,
+                descripcion = entity.Descripcion,
+                tipo_documento = entity.TipoDocumento,
+                numero_documento = entity.NumeroDocumento
             };
         }
 

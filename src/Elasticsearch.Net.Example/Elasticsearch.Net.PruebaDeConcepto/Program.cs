@@ -49,7 +49,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             //1 Registrar documento en el indice
             foreach (var request in DummyData.ObtenerSolicitudesDummy3())
             {
-                Console.WriteLine($"Agregando documento: {request.id_proceso_base}");
+                Console.WriteLine($"Agregando documento: {request.IdProcesoBase}");
                 await RegistrarDocumentModel(_elasticClient, request);
             }
 
@@ -87,7 +87,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
             //1) obtener documento que tenga el mismo "id_proceso_base" 
             var filters = new List<Func<QueryContainerDescriptor<DocumentModel>, QueryContainer>>();
-            filters.Add(fq => fq.Match(w => w.Field("id_proceso_base").Query(request.id_proceso_base)));
+            filters.Add(fq => fq.Match(w => w.Field("id_proceso_base").Query(request.IdProcesoBase)));
 
             ISearchResponse<DocumentModel> searchResponse = await _elasticClient.SearchAsync<DocumentModel>(x =>
                 x.Query(q => q.Bool(bq => bq.Filter(filters))));
@@ -162,7 +162,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                         query = query + "*";
                         //filters.Add(fq => fq.Wildcard(x => new WildcardQueryDescriptor<BloqueMetadatos>().Field("administrados.descripcion").Value(query)));
                         filters.Add(fq => fq.Nested(c => c
-                            .Path(p => p.administrados)
+                            .Path(p => p.Administrados)
                             .Query(q => q
                                 .Wildcard(x => new WildcardQueryDescriptor<DocumentModel>().Field("administrados.descripcion").Value(query)))));
                     }
@@ -173,7 +173,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                 {
                     //filters.Add(fq => fq.Terms(w => w.Field("administrados.numero_documento").Terms<string>(request.administrado.numero_documento)));
                     filters.Add(fq => fq.Nested(c => c
-                        .Path(p => p.administrados)
+                        .Path(p => p.Administrados)
                         .Query(q => q
                             .Match(nq => nq.Field("administrados.numero_documento").Query(request.administrado.numero_documento)))));
                 }
@@ -183,7 +183,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                 {
                     //filters.Add(fq => fq.Match(w => w.Field("administrados.id_administrado").Query(request.administrado.id_administrado)));
                     filters.Add(fq => fq.Nested(c => c
-                        .Path(p => p.administrados)
+                        .Path(p => p.Administrados)
                         .Query(q => q
                             .Match(nq => nq.Field("administrados.id_administrado").Query(request.administrado.id_administrado)))));
                 }
@@ -194,7 +194,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             {
                 filters.Add(fq => fq
                         .Match(w => w
-                        .Field(d => d.solici_numero)
+                        .Field(d => d.SoliciNumero)
                         .Query(request.solici_numero)
 
                     )

@@ -31,19 +31,19 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
                 yield return new DocumentModel()
                 {
-                    id_proceso_base = currentData.id_proc,
-                    ids_procesos = new List<string> { currentData.id_proc },
-                    administrados = new List<Administrado> {
+                    IdProcesoBase = currentData.id_proc,
+                    IdsProcesos = new List<string> { currentData.id_proc },
+                    Administrados = new List<Administrado> {
                         new Administrado() {
-                            id_administrado=currentData.cod_entidad,
-                            tipo_documento=id_documento_ruc,
-                            numero_documento =currentData.ruc,
-                            descripcion = currentData.desc_ent
+                            IdAdministrado=currentData.cod_entidad,
+                            TipoDocumento=id_documento_ruc,
+                            NumeroDocumento =currentData.ruc,
+                            Descripcion = currentData.desc_ent
                         }
                     },
-                    solici_numero = base_numeracion + (i + 1).ToString("D3"),
-                    solici_id_estado = id_estado_solicitud,
-                    solici_fecha_registro = fechaBase.AddDays(i),
+                    SoliciNumero = base_numeracion + (i + 1).ToString("D3"),
+                    SoliciIdEstado = id_estado_solicitud,
+                    SoliciFechaRegistro = fechaBase.AddDays(i),
                 };
 
             }
@@ -83,19 +83,19 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
                 yield return new DocumentModel()
                 {
-                    id_proceso_base = currentData.id_proceso,
-                    ids_procesos = new List<string> { currentData.id_proceso },
-                    administrados = new List<Administrado> {
+                    IdProcesoBase = currentData.id_proceso,
+                    IdsProcesos = new List<string> { currentData.id_proceso },
+                    Administrados = new List<Administrado> {
                         new Administrado() {
-                            id_administrado=currentData.id_administrado,
-                            tipo_documento=currentData.tipo_documento,
-                            numero_documento =currentData.numero_documento,
-                            descripcion = currentData.descripcion
+                            IdAdministrado=currentData.id_administrado,
+                            TipoDocumento=currentData.tipo_documento,
+                            NumeroDocumento =currentData.numero_documento,
+                            Descripcion = currentData.descripcion
                         }
                     },
                     //solici_numero = base_numeracion + (i + 1).ToString("D3"),
                     //solici_id_estado = id_estado_solicitud,
-                    solici_fecha_registro = fechaBase.AddDays(i),
+                    SoliciFechaRegistro = fechaBase.AddDays(i),
                 };
             }
         }
@@ -151,20 +151,20 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
                 yield return new DocumentModel()
                 {
-                    id_proceso_base = currentData.id_proceso,
-                    id_flujo = currentData.id_flujo,
-                    ids_procesos = new List<string> { currentData.id_proceso },
-                    administrados = new List<Administrado> {
+                    IdProcesoBase = currentData.id_proceso,
+                    IdFlujo = currentData.id_flujo,
+                    IdsProcesos = new List<string> { currentData.id_proceso },
+                    Administrados = new List<Administrado> {
                         new Administrado() {
-                            id_administrado=currentData.id_administrado,
-                            tipo_documento=currentData.tipo_documento,
-                            numero_documento =currentData.numero_documento,
-                            descripcion = currentData.descripcion
+                            IdAdministrado=currentData.id_administrado,
+                            TipoDocumento=currentData.tipo_documento,
+                            NumeroDocumento =currentData.numero_documento,
+                            Descripcion = currentData.descripcion
                         }
                     },
-                    solici_numero = currentData.solici_numero,
+                    SoliciNumero = currentData.solici_numero,
                     //solici_id_estado = id_estado_solicitud,
-                    solici_fecha_registro = fechaBase.AddDays(i),
+                    SoliciFechaRegistro = fechaBase.AddDays(i),
                 };
 
 

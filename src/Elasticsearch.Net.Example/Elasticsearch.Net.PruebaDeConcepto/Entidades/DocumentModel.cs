@@ -5,21 +5,21 @@ using Nest;
 
 namespace Elasticsearch.Net.PruebaDeConcepto.Entidades
 {
-    [ElasticsearchType(Name = "_doc")]
+    //[ElasticsearchType(RelationName = "_doc")]
     public partial class DocumentModel
     {
         public DocumentModel()
         {
-            ids_procesos = new List<string>();
+            IdsProcesos = new List<string>();
         }
 
         [Keyword(Name = "id_flujo")]
-        public string id_flujo { get; set; } //ES: keyword
+        public string IdFlujo { get; set; } //ES: keyword
 
         [Keyword(Name = "id_proceso_base")]
-        public string id_proceso_base { get; set; }
-
-        public List<string> ids_procesos { get; set; } //ES: keyword
+        public string IdProcesoBase { get; set; }
+        [PropertyName("ids_procesos")]
+        public List<string> IdsProcesos { get; set; } //ES: keyword
 
     }
 
@@ -29,37 +29,37 @@ namespace Elasticsearch.Net.PruebaDeConcepto.Entidades
     public partial class DocumentModel
     {
         [Keyword(Name = "solici_numero")]
-        public string solici_numero { get; set; }
+        public string SoliciNumero { get; set; }
 
         [Keyword(Name = "solici_id_estado")]
-        public string solici_id_estado { get; set; }
+        public string SoliciIdEstado { get; set; }
 
         [Date(Name = "solici_fecha_registro", Format = "basic_date", IgnoreMalformed = true)]
-        public DateTime? solici_fecha_registro { get; set; }
+        public DateTime? SoliciFechaRegistro { get; set; }
     }
 
     public partial class DocumentModel
     {
         [Nested]
         [PropertyName("administrados")]
-        public List<Administrado> administrados { get; set; }
+        public List<Administrado> Administrados { get; set; }
     }
 
     public class Administrado
     {
         [Keyword(Name = "id_administrado")]
-        public string id_administrado { get; set; }
+        public string IdAdministrado { get; set; }
 
         [Keyword(Name = "tipo_documento")]
-        public string tipo_documento { get; set; }
+        public string TipoDocumento { get; set; }
 
         [Keyword(Name = "numero_documento")]
-        public string numero_documento { get; set; }
+        public string NumeroDocumento { get; set; }
 
         /// <summary>
         /// Razon social o nombres y apellidos
         /// </summary>
         [Text(Name = "descripcion")]
-        public string descripcion { get; set; }
+        public string Descripcion { get; set; }
     }
 }
