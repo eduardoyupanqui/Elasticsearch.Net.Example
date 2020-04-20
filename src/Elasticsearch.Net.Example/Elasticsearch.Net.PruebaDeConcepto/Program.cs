@@ -48,7 +48,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             IElasticClient _elasticClient = serviceProvider.GetService<IElasticClient>();
 
             //0 Crear Index si no existe
-            await CrearIndexSiNoExiste(_elasticClient, _elasticConfig.METADATA_INDEX);
+            await CrearIndexSiNoExiste<DocumentModel>(_elasticClient);
 
             //1 Registrar documento en el indice
             foreach (var request in DummyData.ObtenerSolicitudesDummy3())
@@ -90,12 +90,12 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
         }
 
-        private static async Task CrearIndexSiNoExiste(IElasticClient elasticClient, string _currentIndexName)
+        private static async Task CrearIndexSiNoExiste<T>(IElasticClient elasticClient)
         {
-            var existsResponse = await elasticClient.Indices.ExistsAsync(Indices.Parse(_currentIndexName));
+            var existsResponse = await elasticClient.Indices.ExistsAsync(Indices.Index<T>());
             if (!existsResponse.Exists)
             {
-                await elasticClient.Indices.CreateAsync(_currentIndexName, c => c
+                await elasticClient.Indices.CreateAsync(Indices.Index<T>(), c => c
                              .Settings(se => se
                                 .NumberOfReplicas(0))
                              .Map<DocumentModel>(m => m
