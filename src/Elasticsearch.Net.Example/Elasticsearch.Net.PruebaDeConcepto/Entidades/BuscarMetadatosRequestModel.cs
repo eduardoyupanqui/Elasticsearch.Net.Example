@@ -12,6 +12,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto.Entidades
             ids_procesos = new List<string>();
             administrado = new AdministradoRequest();
         }
+        public string id_flujo { get; set; }
         public List<string> ids_procesos_base { get; set; }
         public List<string> ids_procesos { get; set; }
         public AdministradoRequest administrado { get; set; }

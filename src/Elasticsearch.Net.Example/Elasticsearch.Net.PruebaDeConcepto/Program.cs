@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Elasticsearch.Net.PruebaDeConcepto
@@ -30,7 +31,9 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                 var pool = new SingleNodeConnectionPool(new Uri(_elasticConfig.ELASTIC_SERVER_URL));
                 var settings = new ConnectionSettings(pool)
                     //.DefaultIndex("defaultindex")
-                    .DefaultMappingFor<DocumentModel>(m => m.IndexName(_elasticConfig.METADATA_INDEX));
+                    .DefaultMappingFor<DocumentModel>(m => m
+                        .IndexName(_elasticConfig.METADATA_INDEX)
+                        .IdProperty(d => d.IdProcesoBase));
 
                 //settings.BasicAuthentication(_elasticConfig.ELASTIC_USER, _elasticConfig.ELASTIC_PASS);
 #if DEBUG
@@ -62,11 +65,29 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
             foreach (var document in response)
             {
-                Console.WriteLine($"Doc: {document.id_proceso_base } Num Sol: {document.solici_numero}");
+                Console.WriteLine(BeautyDocument(document));
             }
 
             Console.WriteLine("Bye World Elasticsearch.Net!");
             Console.ReadKey();
+        }
+
+        private static string BeautyDocument(BuscarMetadatosResponse document)
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("********************************************************");
+            stringBuilder.AppendLine($"Proceso Id: {document.id_proceso_base } Num Sol: {document.solici_numero}");
+
+            foreach (var administrado in document.administrados)
+            {
+                stringBuilder.AppendLine($"Administrado: {administrado.tipo_documento} {administrado.numero_documento} Num Sol: {document.solici_numero}");
+                stringBuilder.AppendLine($"Descripcion: {administrado.descripcion}");
+            }
+
+            stringBuilder.AppendLine("********************************************************");
+            return stringBuilder.ToString();
+
         }
 
         private static async Task CrearIndexSiNoExiste(IElasticClient elasticClient, string _currentIndexName)
@@ -85,18 +106,23 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
         public static async Task RegistrarDocumentModel(IElasticClient _elasticClient, DocumentModel request)
         {
-
             //1) obtener documento que tenga el mismo "id_proceso_base" 
-            var filters = new List<Func<QueryContainerDescriptor<DocumentModel>, QueryContainer>>();
-            filters.Add(fq => fq.Match(w => w.Field("id_proceso_base").Query(request.IdProcesoBase)));
-
-            ISearchResponse<DocumentModel> searchResponse = await _elasticClient.SearchAsync<DocumentModel>(x =>
-                x.Query(q => q.Bool(bq => bq.Filter(filters))));
+            //Opcion 1
+            //var filters = new List<Func<QueryContainerDescriptor<DocumentModel>, QueryContainer>>();
+            //filters.Add(fq => fq.Match(w => w.Field(f => f.IdProcesoBase).Query(request.IdProcesoBase)));
+            //ISearchResponse<DocumentModel> searchResponse = await _elasticClient.SearchAsync<DocumentModel>(x =>
+            //    x.Query(q => q
+            //        .Bool(bq => bq
+            //            .Filter(filters))
+            //        )
+            //    );
+            //Opcion 2
+            var getResponse = await _elasticClient.GetAsync<DocumentModel>(request.IdProcesoBase);
+            //Opcion 3
+            //var existsResponse = await _elasticClient.DocumentExistsAsync<DocumentModel>(request.IdProcesoBase);
 
             //2) si ya existe, se obtiene
-
-
-            if (searchResponse.Hits.Count == 0)
+            if (!getResponse.Found)
             {
                 //Crear
                 var insertResponse = await _elasticClient.IndexAsync<DocumentModel>(new IndexRequest<DocumentModel>(request));
@@ -110,17 +136,13 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             else
             {
                 //Modificar
-                IHit<DocumentModel> hit = searchResponse.Hits.First();
-                string bloque_elasticId = hit.Id;
-                DocumentModel bloque = hit.Source;
-                bloque.MergeFrom(request);
+                DocumentModel document = getResponse.Source;
+                document.MergeFrom(request);
 
-                var updateResponse = await _elasticClient.UpdateAsync<DocumentModel>(DocumentPath<DocumentModel>.Id(bloque_elasticId),
+                var updateResponse = await _elasticClient.UpdateAsync<DocumentModel>(DocumentPath<DocumentModel>.Id(document),
                     u => u
-                        //.Index("metadata_index")
-                        //.Type("_doc")
                         .DocAsUpsert(true)
-                        .Doc(bloque)
+                        .Doc(document)
                     );
                 if (!updateResponse.IsValid)
                 {
@@ -136,58 +158,114 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             //Acumulador de filtros
             var filters = new List<Func<QueryContainerDescriptor<DocumentModel>, QueryContainer>>();
 
+            //0)Filtrando por id_flujo
+            if (!string.IsNullOrEmpty(request.id_flujo))
+            {
+                filters.Add(fq => fq.Terms(w => w.Field(f => f.IdFlujo).Terms<string>(request.id_flujo)));
+            }
+
             //1)Filtrando por ids_procesos_base
             if (request.ids_procesos_base != null && request.ids_procesos_base.Count > 0)
             {
-                filters.Add(fq => fq.Terms(w => w.Field("id_proceso_base").Terms<string>(request.ids_procesos_base)));
+                filters.Add(fq => fq.Terms(w => w.Field(f => f.IdProcesoBase).Terms<string>(request.ids_procesos_base)));
             }
 
             //2)Filtrando por ids_procesos
             if (request.ids_procesos != null && request.ids_procesos.Count > 0)
             {
-                filters.Add(fq => fq.Terms(w => w.Field("ids_procesos").Terms<string>(request.ids_procesos)));
+                filters.Add(fq => fq.Terms(w => w.Field(f => f.IdsProcesos).Terms<string>(request.ids_procesos)));
             }
             //3)Filtrando por administrado
             if (request.administrado != null)
             {
+
+                //Search Nested Query
+                //GET metadata_index/ _search
+                //{
+                //  "query": {
+                //        "nested" : {
+                //            "path" : "administrados",
+                //            "query" : {
+                //                "bool" : {
+                //                    "must" : [
+                //                      { "term" : {"administrados.id_administrado" : "f1baf60d-74f1-46ce-89ee-d16f68772807"}}
+                //                    ]
+                //                }
+                //            },
+                //            "score_mode" : "avg"
+                //        }
+                //  }
+                //}
+
+                //#{ "term" : {"administrados.numero_documento" : "20138149022"} }
+                //#{ "term" : {"administrados.tipo_documento" : "RUC"} }
+                //#{ "term" : {"administrados.id_administrado" : "ace82812-ccdd-4ff0-8021-b21534387aa3"} }
+                //#{ "match" : {"administrados.descripcion" : "Universidad"} } //Agregar el wildcard con should/must
+                //#{ "wildcard" : {"administrados.descripcion" : "nacional*"} }
+
+                var mustes = new List<Func<QueryContainerDescriptor<DocumentModel>, QueryContainer>>();
+
                 //1) Búsqueda por descripción de administrado (nombre o razón social) (wildcard)
                 if (!string.IsNullOrWhiteSpace(request.administrado.descripcion))
                 {
-                    #region Preproceso de wildcards
-                    var query = request.administrado.descripcion
+                    //#region Preproceso de wildcards
+                    var query = request.administrado.descripcion.ToLower()
                                 .Replace("*", string.Empty)
                                 .Replace("?", string.Empty);
-                    #endregion
+                    //#endregion
                     if (!string.IsNullOrWhiteSpace(query))
                     {
-                        query = query + "*";
+                        query += "*";
                         //filters.Add(fq => fq.Wildcard(x => new WildcardQueryDescriptor<BloqueMetadatos>().Field("administrados.descripcion").Value(query)));
-                        filters.Add(fq => fq.Nested(c => c
-                            .Path(p => p.Administrados)
-                            .Query(q => q
-                                .Wildcard(x => new WildcardQueryDescriptor<DocumentModel>().Field("administrados.descripcion").Value(query)))));
+                        //filters.Add(fq => fq.Nested(c => c
+                        //    .Path(p => p.Administrados)
+                        //    .Query(q => q
+                        //        .Wildcard(x => new WildcardQueryDescriptor<DocumentModel>().Field("administrados.descripcion").Value(query)))));
+
+                        //Refactor
+                        //mustes.Add(qn => qn.Match(nq => nq.Field("administrados.descripcion").Query(request.administrado.descripcion)));
+                        mustes.Add(qn => qn.Wildcard(x => new WildcardQueryDescriptor<DocumentModel>().Field("administrados.descripcion").Value(query)));
                     }
+                }
+
+
+                //2) Búsqueda por tipo de documento
+                if (!string.IsNullOrWhiteSpace(request.administrado.tipo_documento))
+                {
+                    mustes.Add(qn => qn.Terms(nq => nq.Field("administrados.tipo_documento").Terms(request.administrado.tipo_documento)));
                 }
 
                 //2) Búsqueda por número de documento
                 if (!string.IsNullOrWhiteSpace(request.administrado.numero_documento))
                 {
-                    //filters.Add(fq => fq.Terms(w => w.Field("administrados.numero_documento").Terms<string>(request.administrado.numero_documento)));
-                    filters.Add(fq => fq.Nested(c => c
-                        .Path(p => p.Administrados)
-                        .Query(q => q
-                            .Match(nq => nq.Field("administrados.numero_documento").Query(request.administrado.numero_documento)))));
+                    ////filters.Add(fq => fq.Terms(w => w.Field("administrados.numero_documento").Terms<string>(request.administrado.numero_documento)));
+                    //filters.Add(fq => fq.Nested(c => c
+                    //    .Path(p => p.Administrados)
+                    //    .Query(q => q
+                    //        .Match(nq => nq.Field("administrados.numero_documento").Query(request.administrado.numero_documento)))));
+                    
+                    //Refactor
+                    mustes.Add(qn => qn.Terms(nq => nq.Field("administrados.numero_documento").Terms(request.administrado.descripcion)));
                 }
 
                 //3) Búsqueda por id administrado
                 if (!string.IsNullOrWhiteSpace(request.administrado.id_administrado))
                 {
-                    //filters.Add(fq => fq.Match(w => w.Field("administrados.id_administrado").Query(request.administrado.id_administrado)));
-                    filters.Add(fq => fq.Nested(c => c
-                        .Path(p => p.Administrados)
-                        .Query(q => q
-                            .Match(nq => nq.Field("administrados.id_administrado").Query(request.administrado.id_administrado)))));
+                    ////filters.Add(fq => fq.Match(w => w.Field("administrados.id_administrado").Query(request.administrado.id_administrado)));
+                    //filters.Add(fq => fq.Nested(c => c
+                    //    .Path(p => p.Administrados)
+                    //    .Query(q => q
+                    //        .Match(nq => nq.Field("administrados.id_administrado").Query(request.administrado.id_administrado)))));
+                    
+                    //Refactor
+                    mustes.Add(qn => qn.Terms(nq => nq.Field("administrados.id_administrado").Terms(request.administrado.id_administrado)));
                 }
+
+                filters.Add(fq => fq.Nested(c => c
+                        .Path(p => p.Administrados)
+                        .Query(q => q.Bool(b => b.Must(mustes))
+                            )));
+
             }
 
             //4) Filtrando por número de solicitud (solici_numero)
@@ -195,8 +273,8 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             {
                 filters.Add(fq => fq
                         .Match(w => w
-                        .Field(d => d.SoliciNumero)
-                        .Query(request.solici_numero)
+                            .Field(d => d.SoliciNumero)
+                            .Query(request.solici_numero)
 
                     )
                 );

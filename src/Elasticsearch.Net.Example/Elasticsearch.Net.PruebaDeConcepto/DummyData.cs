@@ -177,13 +177,13 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             var buscarRequest = new BuscarMetadatosRequest()
             {
                 //1) Buscando por "id_administrado"
-                administrado = new AdministradoRequest() { id_administrado = "f1baf60d-74f1-46ce-89ee-d16f68772807" }, //"Universidad Nacional del Santa"
+                //administrado = new AdministradoRequest() { id_administrado = "f1baf60d-74f1-46ce-89ee-d16f68772807" }, //"Universidad Nacional del Santa"
 
                 //2) Buscando por (parte de) "descripcion" de administrado
-                //administrado = new AdministradoRequest() { descripcion = "priv" }, //"Universidad de San Martín de Porres"
+                //administrado = new AdministradoRequest() { descripcion = "Nacion" }, //"Universidad de San Martín de Porres"
 
                 //3) Buscando por "numero_documento" de administrado
-                //administrado = new AdministradoRequest() { numero_documento = "20479748102" }, //"Universidad Señor de Sipán"
+                administrado = new AdministradoRequest() { numero_documento = "20479748102" }, //"Universidad Señor de Sipán"
 
                 //4) Buscando por "id_proceso_base"
                 //ids_procesos_base = new List<string>() { "5cdb2a8429f74744d07b31c0" }, //"0008-SOLPROME - Universidad Señor de Sipán"
