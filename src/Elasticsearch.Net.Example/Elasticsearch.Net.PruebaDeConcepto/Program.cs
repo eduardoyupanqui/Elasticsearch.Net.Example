@@ -224,7 +224,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
                         //Refactor
                         //mustes.Add(qn => qn.Match(nq => nq.Field("administrados.descripcion").Query(request.administrado.descripcion)));
-                        mustes.Add(qn => qn.Wildcard(x => new WildcardQueryDescriptor<DocumentModel>().Field("administrados.descripcion").Value(query)));
+                        mustes.Add(qn => qn.Wildcard(x => new WildcardQueryDescriptor<DocumentModel>().Field(x => x.Administrados.First().Descripcion).Value(query)));
                     }
                 }
 
@@ -232,7 +232,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                 //2) Búsqueda por tipo de documento
                 if (!string.IsNullOrWhiteSpace(request.administrado.tipo_documento))
                 {
-                    mustes.Add(qn => qn.Terms(nq => nq.Field("administrados.tipo_documento").Terms(request.administrado.tipo_documento)));
+                    mustes.Add(qn => qn.Terms(nq => nq.Field(x => x.Administrados.First().TipoDocumento).Terms(request.administrado.tipo_documento)));
                 }
 
                 //2) Búsqueda por número de documento
@@ -245,7 +245,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     //        .Match(nq => nq.Field("administrados.numero_documento").Query(request.administrado.numero_documento)))));
                     
                     //Refactor
-                    mustes.Add(qn => qn.Terms(nq => nq.Field("administrados.numero_documento").Terms(request.administrado.numero_documento)));
+                    mustes.Add(qn => qn.Terms(nq => nq.Field(x => x.Administrados.First().NumeroDocumento).Terms(request.administrado.numero_documento)));
                 }
 
                 //3) Búsqueda por id administrado
@@ -258,7 +258,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     //        .Match(nq => nq.Field("administrados.id_administrado").Query(request.administrado.id_administrado)))));
                     
                     //Refactor
-                    mustes.Add(qn => qn.Terms(nq => nq.Field("administrados.id_administrado").Terms(request.administrado.id_administrado)));
+                    mustes.Add(qn => qn.Terms(nq => nq.Field(x => x.Administrados.First().IdAdministrado).Terms(request.administrado.id_administrado)));
                 }
 
                 filters.Add(fq => fq.Nested(c => c
