@@ -245,7 +245,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     //        .Match(nq => nq.Field("administrados.numero_documento").Query(request.administrado.numero_documento)))));
                     
                     //Refactor
-                    mustes.Add(qn => qn.Terms(nq => nq.Field("administrados.numero_documento").Terms(request.administrado.descripcion)));
+                    mustes.Add(qn => qn.Terms(nq => nq.Field("administrados.numero_documento").Terms(request.administrado.numero_documento)));
                 }
 
                 //3) Búsqueda por id administrado
