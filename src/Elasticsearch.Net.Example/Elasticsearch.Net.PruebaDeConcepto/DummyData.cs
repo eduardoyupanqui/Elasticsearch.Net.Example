@@ -113,7 +113,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     ,numero_documento="20138149022"
                     ,descripcion = "Universidad Nacional del Centro del Perú"
                     ,solici_numero="0004-SOLPROME"
-                    ,id_flujo="5ab17b784fff3b05cc33897d"
+                    ,id_flujo="5ab17b784fff3b10cc33897d"
                     ,id_proceso="5cf5a5820ee55a451c9f4a68"
                       },
                new {
@@ -122,7 +122,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     ,numero_documento="20148309109"
                     ,descripcion = "Universidad Nacional del Santa"
                     ,solici_numero="0018-SOLPROME"
-                    ,id_flujo="5ab17b784fff3b05cc33897d"
+                    ,id_flujo="5ab17b784fff3b10cc33897d"
                     ,id_proceso="5ce5c939d2cb0c503c628cac"
                       },
                 new {
@@ -176,14 +176,17 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
             var buscarRequest = new BuscarMetadatosRequest()
             {
+                //0) Buscando por "id_flujo"
+                id_flujo = "5ab17b784fff3b10cc33897d",
+
                 //1) Buscando por "id_administrado"
                 //administrado = new AdministradoRequest() { id_administrado = "f1baf60d-74f1-46ce-89ee-d16f68772807" }, //"Universidad Nacional del Santa"
 
                 //2) Buscando por (parte de) "descripcion" de administrado
-                //administrado = new AdministradoRequest() { descripcion = "Nacion" }, //"Universidad de San Martín de Porres"
+                //administrado = new AdministradoRequest() { descripcion = "Centro" }, //"Universidad de San Martín de Porres"
 
                 //3) Buscando por "numero_documento" de administrado
-                administrado = new AdministradoRequest() { numero_documento = "20479748102" }, //"Universidad Señor de Sipán"
+                //administrado = new AdministradoRequest() { numero_documento = "20138149022" }, //"Universidad Señor de Sipán"
 
                 //4) Buscando por "id_proceso_base"
                 //ids_procesos_base = new List<string>() { "5cdb2a8429f74744d07b31c0" }, //"0008-SOLPROME - Universidad Señor de Sipán"
