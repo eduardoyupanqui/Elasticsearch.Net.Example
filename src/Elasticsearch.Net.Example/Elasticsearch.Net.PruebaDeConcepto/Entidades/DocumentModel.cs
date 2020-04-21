@@ -34,7 +34,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto.Entidades
         [Keyword(Name = "solici_id_estado")]
         public string SoliciIdEstado { get; set; }
 
-        [Date(Name = "solici_fecha_registro", Format = "basic_date", IgnoreMalformed = true)]
+        [Date(Name = "solici_fecha_registro", Format = "date_optional_time")]
         public DateTime? SoliciFechaRegistro { get; set; }
     }
 

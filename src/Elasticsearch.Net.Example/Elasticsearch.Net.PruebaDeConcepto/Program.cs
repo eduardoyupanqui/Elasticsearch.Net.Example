@@ -78,7 +78,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
             stringBuilder.AppendLine("********************************************************");
             stringBuilder.AppendLine($"Proceso Id: {document.id_proceso_base } Num Sol: {document.solici_numero}");
-
+            stringBuilder.AppendLine($"Fecha: {document.solici_fecha_registro }");
             foreach (var administrado in document.administrados)
             {
                 stringBuilder.AppendLine($"Administrado: {administrado.tipo_documento} {administrado.numero_documento} Num Sol: {document.solici_numero}");
@@ -261,10 +261,13 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     mustes.Add(qn => qn.Terms(nq => nq.Field(x => x.Administrados.First().IdAdministrado).Terms(request.administrado.id_administrado)));
                 }
 
-                filters.Add(fq => fq.Nested(c => c
-                        .Path(p => p.Administrados)
-                        .Query(q => q.Bool(b => b.Must(mustes))
-                            )));
+                if (mustes.Count > 0)
+                {
+                    filters.Add(fq => fq.Nested(c => c
+                            .Path(p => p.Administrados)
+                            .Query(q => q.Bool(b => b.Must(mustes))
+                                )));
+                }
 
             }
 
@@ -278,6 +281,35 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
                     )
                 );
+            }
+
+            //5) Filtrando por rango de fechas desde-hasta
+
+            //GET metadata_index/_search
+            //{
+            //  "query": {
+            //    "bool": {
+            //      "filter": [
+            //        {
+            //          "range": {
+            //            "solici_fecha_registro": {
+            //              "gte": "2020-04-21T00:00:00.0000000-05:00",
+            //              "lt": "2020-04-23T00:00:00.0000000-05:00"
+            //            }
+            //          }
+            //        }
+            //      ]
+            //    }
+            //  }
+            //}
+            {
+                filters.Add(fq => fq
+                            .DateRange(c => c
+                            .Field(d => d.SoliciFechaRegistro)
+                            .GreaterThanOrEquals(request.desde)
+                            .LessThan(request.hasta)
+                            )
+                            );
             }
 
             ISearchResponse<DocumentModel> searchResponse = await _elasticClient.SearchAsync<DocumentModel>(x => x

@@ -177,7 +177,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             var buscarRequest = new BuscarMetadatosRequest()
             {
                 //0) Buscando por "id_flujo"
-                id_flujo = "5ab17b784fff3b10cc33897d",
+                //id_flujo = "5ab17b784fff3b10cc33897d",
 
                 //1) Buscando por "id_administrado"
                 //administrado = new AdministradoRequest() { id_administrado = "f1baf60d-74f1-46ce-89ee-d16f68772807" }, //"Universidad Nacional del Santa"
@@ -200,6 +200,10 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
                 //7) Buscando por "solici_numero"
                 //solici_numero = "0008-SOLPROME" //"Universidad Señor de Sipán"
+
+                //8) Buscando por fecha desde hasta
+                desde = DateTime.Now.Date.AddDays(1),
+                hasta = DateTime.Now.Date.AddDays(2),
             };
             return buscarRequest;
         }
