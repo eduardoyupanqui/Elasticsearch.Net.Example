@@ -57,6 +57,9 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                 await RegistrarDocumentModel(_elasticClient, request);
             }
 
+            //await BulkOperatorsBasic(_elasticClient, DummyData.ObtenerSolicitudesDummy4().First(), DummyData.ObtenerSolicitudesDummy3().First());
+            await BulkOperatorsSmart(_elasticClient, DummyData.ObtenerSolicitudesDummy4().First(), DummyData.ObtenerSolicitudesDummy3().First());
+
             //2 Buscar documento en el indice
 
             var requestBusqueda = DummyData.GetRequest();
@@ -149,6 +152,37 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     Console.WriteLine("Error al actualizar bloque");
                     Console.WriteLine(updateResponse.DebugInformation);
                 }
+            }
+        }
+        //https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
+        public static async Task BulkOperatorsBasic(IElasticClient _elasticClient, DocumentModel documentToAdd, DocumentModel documentToUpdate)
+        {
+            //Operator para agregar Documentos
+            var bulkCreateOperator = new BulkCreateOperation<DocumentModel>(documentToAdd);
+            //Operator para actualizar Documentos
+            var documentPartialUpdateModel = new DocumentPartialUpdateModel { SoliciIdEstado = "Pendiente"};
+            var bulkUpdateOperator = new BulkUpdateOperation<DocumentModel, DocumentPartialUpdateModel>(documentToUpdate, documentPartialUpdateModel);
+            var bulkResponse = await _elasticClient.BulkAsync(b => b.AddOperation(bulkCreateOperator).AddOperation(bulkUpdateOperator));
+            if (!bulkResponse.IsValid)
+            {
+                //var responseBeauty = bulkResponse.Items
+                Console.WriteLine("Error al agregar/actualizar bloques");
+                Console.WriteLine(bulkResponse.DebugInformation);
+            }
+        }
+
+        public static async Task BulkOperatorsSmart(IElasticClient _elasticClient, DocumentModel documentToAdd, DocumentModel documentToUpdate)
+        {
+            //Operator para agregar/actualizar Documentos (UPSERT)
+            var bulkRequest = new BulkRequest() { Operations = new BulkOperationsCollection<IBulkOperation>() };
+            bulkRequest.Operations.Add(new BulkUpdateOperation<DocumentModel, DocumentModel>(documentToAdd, documentToAdd, useIdFromAsUpsert: true));
+            bulkRequest.Operations.Add(new BulkUpdateOperation<DocumentModel, DocumentModel>(documentToUpdate, documentToUpdate, useIdFromAsUpsert: true));
+            var bulkResponse = await _elasticClient.BulkAsync(bulkRequest);
+            if (!bulkResponse.IsValid)
+            {
+                //var responseBeauty = bulkResponse.Items
+                Console.WriteLine("Error al agregar/actualizar bloques");
+                Console.WriteLine(bulkResponse.DebugInformation);
             }
         }
 

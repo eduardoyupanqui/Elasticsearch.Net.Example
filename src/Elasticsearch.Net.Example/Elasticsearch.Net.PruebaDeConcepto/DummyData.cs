@@ -171,6 +171,50 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             }
         }
 
+        public static IEnumerable<DocumentModel> ObtenerSolicitudesDummy4()
+        {
+
+            DateTime fechaBase = DateTime.Now;
+
+            var lstData = new List<dynamic>
+            {
+                 new {
+                     id_administrado="2400736e-f593-472e-aad4-142a49c37957"
+                    ,tipo_documento="RUC"
+                    ,numero_documento="20479748102"
+                    ,descripcion = "Universidad Señor de Sipán"
+                    ,solici_numero="0025-SOLPROME"
+                    ,id_flujo="5ab17b784fff3b05cc33897d"
+                    ,id_proceso="5cdb2a8429f74755d07b31c0"
+                      },
+            };
+
+            for (int i = 0; i < lstData.Count; i++)
+            {
+                var currentData = lstData[i];
+
+                yield return new DocumentModel()
+                {
+                    IdProcesoBase = currentData.id_proceso,
+                    IdFlujo = currentData.id_flujo,
+                    IdsProcesos = new List<string> { currentData.id_proceso },
+                    Administrados = new List<Administrado> {
+                        new Administrado() {
+                            IdAdministrado=currentData.id_administrado,
+                            TipoDocumento=currentData.tipo_documento,
+                            NumeroDocumento =currentData.numero_documento,
+                            Descripcion = currentData.descripcion
+                        }
+                    },
+                    SoliciNumero = currentData.solici_numero,
+                    //solici_id_estado = id_estado_solicitud,
+                    SoliciFechaRegistro = fechaBase.AddDays(i),
+                };
+
+
+            }
+        }
+
         public static BuscarMetadatosRequest GetRequest()
         {
 
