@@ -346,8 +346,23 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                             );
             }
 
+            //GET metadata_index/ _search
+            //{
+            //      "query": {
+            //          "bool": {
+            //              "must" : {
+            //                 "term" : { "es_pendiente" : true }
+            //              },
+            //              "filter": [
+            //                  {
+            //                     ....
+            //                  }
+            //              ]
+            //          }
+            //      }
+            //}
             ISearchResponse<DocumentModel> searchResponse = await _elasticClient.SearchAsync<DocumentModel>(x => x
-                .Query(q => q.Bool(bq => bq.Filter(filters)))
+                .Query(q => q.Bool(bq => bq.Must(qd => qd.Term(f => f.SoliciIdEstado, "Pendiente")).Filter(filters)))
                 .Sort(s => s.Ascending(SortSpecialField.DocumentIndexOrder))
                 .TrackScores(false)
                 //.Scroll("1m")
