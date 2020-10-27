@@ -28,7 +28,25 @@ namespace Elasticsearch.Net.PruebaDeConcepto.Entidades
     /// </summary>
     public partial class DocumentModel
     {
-        [Keyword(Name = "solici_numero")]
+        /// <summary>
+        /// Creando un tokenizador personalizado para SoliciNumero
+        /// GET _analyze
+        /// {
+        ///   "tokenizer": "keyword",
+        ///   "filter": [{
+        ///               "type" : "word_delimiter",
+        ///               "generate_number_parts" : true,
+        ///               "preserve_original" : true
+        /// 
+        ///             }, {
+        ///                "type": "pattern_capture",
+        ///                "preserve_original": true,
+        ///                "patterns": ["^0+(.*)"]
+        ///             },"lowercase", "unique"],
+        ///   "text": "SOLREC0001410"
+        /// }
+        /// </summary>
+        [Text(Name = "solici_numero", Analyzer = "sol_num")]
         public string SoliciNumero { get; set; }
 
         [Keyword(Name = "solici_id_estado")]

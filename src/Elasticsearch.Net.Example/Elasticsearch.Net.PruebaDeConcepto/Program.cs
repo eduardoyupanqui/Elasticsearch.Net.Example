@@ -48,7 +48,11 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             IElasticClient _elasticClient = serviceProvider.GetService<IElasticClient>();
 
             //0 Crear Index si no existe
-            await CrearIndexSiNoExiste<DocumentModel>(_elasticClient);
+            var createIndexResponse = await CrearIndexSiNoExiste<DocumentModel>(_elasticClient);
+            if (!createIndexResponse.IsValid)
+            {
+                Console.WriteLine($"Error al crear Indice: {createIndexResponse.DebugInformation}");
+            }
 
             //1 Registrar documento en el indice
             foreach (var request in DummyData.ObtenerSolicitudesDummy3())
@@ -93,18 +97,28 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
         }
 
-        private static async Task CrearIndexSiNoExiste<T>(IElasticClient elasticClient)
+        private static async Task<ResponseBase> CrearIndexSiNoExiste<T>(IElasticClient elasticClient)
         {
             var existsResponse = await elasticClient.Indices.ExistsAsync(Indices.Index<T>());
             if (!existsResponse.Exists)
             {
-                await elasticClient.Indices.CreateAsync(Indices.Index<T>(), c => c
+                var createResponse = await elasticClient.Indices.CreateAsync(Indices.Index<T>(), c => c
                              .Settings(se => se
-                                .NumberOfReplicas(0))
+                                .NumberOfReplicas(0)
+                                .Analysis(an => an
+                                    .TokenFilters(tf => tf
+                                        .UserDefined("strim_number", new PatternReplaceTokenFilter { Pattern = "^0+(.*)", Replacement = "$1" })
+                                        .UserDefined("split_number", new PatternCaptureTokenFilter { PreserveOriginal = true, Patterns = new List<string> { "^0+(.*)" } })
+                                        .UserDefined("num_sol_delimiter", new WordDelimiterTokenFilter { GenerateNumberParts = true, PreserveOriginal = true }))
+                                    .Normalizers(n => n.Custom("lowercase", cn => cn.Filters("lowercase")))
+                                    .Analyzers(a => a.Custom("sol_num", ca => ca.Tokenizer("standard").Filters("num_sol_delimiter", "split_number", "lowercase", "unique"))))
+                             )
                              .Map<DocumentModel>(m => m
                                 .AutoMap())
                              );
+                return createResponse;
             }
+            return existsResponse;
         }
 
         public static async Task RegistrarDocumentModel(IElasticClient _elasticClient, DocumentModel request)
@@ -309,12 +323,15 @@ namespace Elasticsearch.Net.PruebaDeConcepto
             if (!string.IsNullOrWhiteSpace(request.solici_numero))
             {
                 filters.Add(fq => fq
-                        .Match(w => w
-                            .Field(d => d.SoliciNumero)
-                            .Query(request.solici_numero)
-
-                    )
+                    .Prefix(b => b.SoliciNumero, request.solici_numero.ToLower())
                 );
+                //filters.Add(fq => fq
+                //        .Match(w => w
+                //            .Field(d => d.SoliciNumero)
+                //            .Query(request.solici_numero)
+
+                //    )
+                //);
             }
 
             //5) Filtrando por rango de fechas desde-hasta
