@@ -109,9 +109,14 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                                     .TokenFilters(tf => tf
                                         .UserDefined("strim_number", new PatternReplaceTokenFilter { Pattern = "^0+(.*)", Replacement = "$1" })
                                         .UserDefined("split_number", new PatternCaptureTokenFilter { PreserveOriginal = true, Patterns = new List<string> { "^0+(.*)" } })
-                                        .UserDefined("num_sol_delimiter", new WordDelimiterTokenFilter { GenerateNumberParts = true, PreserveOriginal = true }))
+                                        .UserDefined("num_sol_delimiter", new WordDelimiterTokenFilter { GenerateNumberParts = true, PreserveOriginal = true })
+                                        .UserDefined("suffixes", new EdgeNGramTokenFilter { MinGram = 1, MaxGram = 20 })
+                                     )
                                     .Normalizers(n => n.Custom("lowercase", cn => cn.Filters("lowercase")))
-                                    .Analyzers(a => a.Custom("sol_num", ca => ca.Tokenizer("standard").Filters("num_sol_delimiter", "split_number", "lowercase", "unique"))))
+                                    .Analyzers(a => a
+                                        .Custom("sol_num", ca => ca.Tokenizer("keyword").Filters("num_sol_delimiter", "split_number", "lowercase", "unique"))
+                                        .Custom("sol_num_ngram_inverso", ca => ca.Tokenizer("keyword").Filters("lowercase", "reverse", "suffixes", "reverse"))
+                                    ))
                              )
                              .Map<DocumentModel>(m => m
                                 .AutoMap())
