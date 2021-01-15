@@ -113,6 +113,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     ,numero_documento="20138149022"
                     ,descripcion = "Universidad Nacional del Centro del Perú"
                     ,solici_numero="0004-SOLPROME"
+                    ,numero_rtd="RTD N° 12564-2020"
                     ,id_flujo="5ab17b784fff3b10cc33897d"
                     ,id_proceso="5cf5a5820ee55a451c9f4a68"
                       },
@@ -122,6 +123,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     ,numero_documento="20148309109"
                     ,descripcion = "Universidad Nacional del Santa"
                     ,solici_numero="0018-SOLPROME"
+                    ,numero_rtd="RTD N° 001256-2020"
                     ,id_flujo="5ab17b784fff3b10cc33897d"
                     ,id_proceso="5ce5c939d2cb0c503c628cac"
                       },
@@ -131,6 +133,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     ,numero_documento="20148309109"
                     ,descripcion = "Universidad Nacional del Santa"
                     ,solici_numero="0002-SOLPROME"
+                    ,numero_rtd="RTD N° 001234-2021"
                     ,id_flujo="5ab17b784fff3b05cc33897d"
                     ,id_proceso="5cdae37d939be24b9ce0e020"
                       },
@@ -140,6 +143,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                     ,numero_documento="20479748102"
                     ,descripcion = "Universidad Señor de Sipán"
                     ,solici_numero="0008-SOLPROME"
+                    ,numero_rtd="RTD N° 0012564-2021"
                     ,id_flujo="5ab17b784fff3b05cc33897d"
                     ,id_proceso="5cdb2a8429f74744d07b31c0"
                       },
@@ -163,6 +167,7 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                         }
                     },
                     SoliciNumero = currentData.solici_numero,
+                    NumeroRtd = currentData.numero_rtd,
                     //solici_id_estado = id_estado_solicitud,
                     SoliciFechaRegistro = fechaBase.AddDays(i),
                 };
@@ -244,6 +249,9 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
                 //7) Buscando por "solici_numero"
                 //solici_numero = "0008-SOLPROME" //"Universidad Señor de Sipán"
+
+                //7) Buscando por "numero_rtd"
+                //numero_rtd = "RTD N° 00012564-2020", //001234 2020 2021
 
                 //8) Buscando por fecha desde hasta
                 desde = DateTime.Now.Date.AddDays(1),

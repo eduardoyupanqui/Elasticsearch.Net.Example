@@ -24,6 +24,11 @@ namespace Elasticsearch.Net.PruebaDeConcepto.Entidades
         /// Número de solicitud (valor exacto). Ejemplo "00038007-2018"
         /// </summary>
         public string solici_numero { get; set; }
+
+        /// <summary>
+        /// Número de rtd. Ejemplo "RTD N° 00038007-2020"
+        /// </summary>
+        public string numero_rtd { get; set; }
     }
 
     public class AdministradoRequest

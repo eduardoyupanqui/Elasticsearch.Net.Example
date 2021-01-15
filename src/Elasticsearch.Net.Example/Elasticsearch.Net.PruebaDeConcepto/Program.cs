@@ -110,12 +110,14 @@ namespace Elasticsearch.Net.PruebaDeConcepto
                                         .UserDefined("strim_number", new PatternReplaceTokenFilter { Pattern = "^0+(.*)", Replacement = "$1" })
                                         .UserDefined("split_number", new PatternCaptureTokenFilter { PreserveOriginal = true, Patterns = new List<string> { "^0+(.*)" } })
                                         .UserDefined("num_sol_delimiter", new WordDelimiterTokenFilter { GenerateNumberParts = true, PreserveOriginal = true })
+                                        .UserDefined("word_delimiter", new WordDelimiterTokenFilter { GenerateNumberParts = true, PreserveOriginal = true })
                                         .UserDefined("suffixes", new EdgeNGramTokenFilter { MinGram = 1, MaxGram = 20 })
                                      )
                                     .Normalizers(n => n.Custom("lowercase", cn => cn.Filters("lowercase")))
                                     .Analyzers(a => a
                                         .Custom("sol_num", ca => ca.Tokenizer("keyword").Filters("num_sol_delimiter", "split_number", "lowercase", "unique"))
                                         .Custom("sol_num_ngram_inverso", ca => ca.Tokenizer("keyword").Filters("lowercase", "reverse", "suffixes", "reverse"))
+                                        .Custom("num_rtd", ca => ca.Tokenizer("whitespace").Filters("word_delimiter", "split_number", "lowercase", "unique"))
                                     ))
                              )
                              .Map<DocumentModel>(m => m
@@ -337,6 +339,14 @@ namespace Elasticsearch.Net.PruebaDeConcepto
 
                 //    )
                 //);
+            }
+
+            //4) Filtrando por número de RTD (numero_rtd)
+            if (!string.IsNullOrWhiteSpace(request.numero_rtd))
+            {
+                filters.Add(fq => fq
+                    .Prefix(b => b.NumeroRtd, request.numero_rtd.ToLower())
+                );
             }
 
             //5) Filtrando por rango de fechas desde-hasta

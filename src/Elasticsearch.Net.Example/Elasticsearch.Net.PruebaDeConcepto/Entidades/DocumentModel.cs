@@ -48,6 +48,8 @@ namespace Elasticsearch.Net.PruebaDeConcepto.Entidades
         /// </summary>
         [Text(Name = "solici_numero", Analyzer = "sol_num")]
         public string SoliciNumero { get; set; }
+        [Text(Name = "numero_rtd", Analyzer = "num_rtd")]
+        public string NumeroRtd { get; set; }
 
         [Keyword(Name = "solici_id_estado")]
         public string SoliciIdEstado { get; set; }
